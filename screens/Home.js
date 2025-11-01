@@ -1,8 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Dimensions } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function Home({ navigation }) {
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 12.9716,  // Default to a central location (Bangalore)
+    longitude: 77.5946,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
+  const [showMap, setShowMap] = useState(false);
+
+  const handleLocationPress = () => {
+    navigation.navigate('MapScreen');
+  };
+
   const tasks = [
     { id: 1, title: 'Read a book', completed: false },
     { id: 2, title: 'Exercise', completed: true },
@@ -12,7 +28,7 @@ export default function Home({ navigation }) {
   const incompleteTasks = tasks.filter(task => !task.completed);
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* User Profile Section */}
       <View style={styles.profileContainer}>
         <View style={styles.avatarContainer}>
@@ -28,17 +44,43 @@ export default function Home({ navigation }) {
         <Text style={styles.userEmail}>user@example.com</Text>
       </View>
 
-      {/* AI Chat Container */}
-      {/* AI Chat Container */}
-<View style={styles.aiChatContainer}>
-  <TouchableOpacity style={styles.aiChatButton} onPress={() => navigation.navigate('ChatScreen')}>
-    <MaterialIcons name="chat" size={24} color="#6C63FF" />
-    <Text style={styles.aiChatText}>AI Assistant</Text>
-  </TouchableOpacity>
-</View>
+      {/* Location Button */}
+      <View style={styles.aiChatContainer}>
+        <TouchableOpacity style={styles.aiChatButton} onPress={handleLocationPress}>
+          <MaterialIcons name="location-on" size={24} color="#6C63FF" />
+          <Text style={styles.aiChatText}>SHOW MY LOCATION</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Map View */}
+      {showMap && (
+        <View style={styles.mapContainer}>
+          <MapView
+            style={styles.map}
+            region={mapRegion}
+            showsUserLocation={true}
+            showsMyLocationButton={true}
+            followsUserLocation={true}
+          >
+            {location && (
+              <Marker
+                coordinate={{
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
+                }}
+                title="Your Location"
+                description="You are here"
+              />
+            )}
+          </MapView>
+        </View>
+      )}
 
       {/* Tasks Panel */}
-      <TouchableOpacity style={styles.tasksPanel} onPress={() => navigation.navigate('TaskList')}>
+      <TouchableOpacity 
+        style={styles.tasksPanel} 
+        onPress={() => navigation.navigate('TaskList')}
+      >
         <Text style={styles.tasksTitle}>Tasks to Complete</Text>
         {incompleteTasks.map(task => (
           <View key={task.id} style={styles.taskItem}>
@@ -46,7 +88,7 @@ export default function Home({ navigation }) {
           </View>
         ))}
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -54,6 +96,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  mapContainer: {
+    height: 300,
+    margin: 20,
+    borderRadius: 15,
+    overflow: 'hidden',
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
   },
   profileContainer: {
     backgroundColor: '#6C63FF',
