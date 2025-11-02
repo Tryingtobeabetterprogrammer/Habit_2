@@ -10,6 +10,7 @@ async function loadNotifee() {
     notifee = mod.default || mod;
     return notifee;
   } catch (e) {
+    console.log('Notifee module not available:', e?.message || e);
     return null;
   }
 }
@@ -28,6 +29,13 @@ export async function initNotifeeAndroid() {
     vibration: true,
     bypassDnd: true,
   });
+
+  try {
+    // Android 13+ requires runtime notification permission
+    await nf.requestPermission();
+  } catch (e) {
+    console.log('Notifee requestPermission error:', e?.message || e);
+  }
   return true;
 }
 
@@ -78,6 +86,38 @@ export async function scheduleAndroidFullScreenAlarm({ taskId, title, descriptio
   );
 
   return notificationId;
+}
+
+// Fire an immediate full-screen notification (use when user just locked the device)
+export async function triggerAndroidFullScreenNow({ taskId, title, description = '' }) {
+  if (Platform.OS !== 'android') return null;
+  const nf = await loadNotifee();
+  if (!nf) return null;
+
+  await initNotifeeAndroid();
+  try {
+    const id = await nf.displayNotification({
+      id: `alarm-now-${taskId}`,
+      title: '⏰ ' + (title || 'Alarm'),
+      body: description || 'It\'s time! Opening alarm...',
+      android: {
+        channelId: 'alarm',
+        importance: 5,
+        category: 'alarm',
+        visibility: 1,
+        sound: 'default',
+        vibrationPattern: [0, 500, 500, 500, 500, 500],
+        fullScreenAction: { id: 'default' },
+        pressAction: { id: 'default', launchActivity: 'default' },
+        extras: { taskId, taskTitle: title, type: 'alarm' },
+      },
+      data: { taskId, taskTitle: title, type: 'alarm' },
+    });
+    return id;
+  } catch (e) {
+    console.log('triggerAndroidFullScreenNow error:', e?.message || e);
+    throw e;
+  }
 }
 
 export async function wireNotifeeListeners(navigateToPopup) {

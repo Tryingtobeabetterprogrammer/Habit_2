@@ -49,7 +49,10 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "projectId": "your-project-id"
+      "projectId": "your-project-id",
+      "eas": {
+        "projectId": "d4cc3747-4b39-47e0-b8d0-a19a7ab26b77"
+      }
     }
   }
 }

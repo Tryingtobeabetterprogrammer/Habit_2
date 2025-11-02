@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { scheduleTaskAlarm, cancelTaskAlarm, formatAlarmTime, getAllScheduledNotifications } from '../services/alarmService';
+import { scheduleAndroidFullScreenAlarm, triggerAndroidFullScreenNow } from '../services/notifeeService';
 
 // Import AddTask screen
 import AddTask from './AddTask';
@@ -253,6 +254,41 @@ export default function TaskList({ navigation }) {
         }}
       >
         <Text style={styles.testButtonText}>🧪 Test Alarm (30s)</Text>
+      </TouchableOpacity>
+
+      {/* Force Full-Screen Now (Android Dev Client) */}
+      <TouchableOpacity
+        style={[styles.testButton, { bottom: 145, backgroundColor: '#E91E63', shadowColor: '#E91E63' }]}
+        onPress={async () => {
+          try {
+            // Try to show immediately
+            const nowId = await triggerAndroidFullScreenNow({
+              taskId: 'force-now-' + Date.now(),
+              title: 'Force Full-Screen Test',
+              description: 'Opening AlarmPopup...',
+            });
+            if (nowId) return;
+
+            // Fallback: schedule in 2s and ask to lock
+            const when = new Date(Date.now() + 2000);
+            const id = await scheduleAndroidFullScreenAlarm({
+              taskId: 'force-now-' + Date.now(),
+              title: 'Force Full-Screen Test',
+              description: 'This should open AlarmPopup now',
+              date: when,
+            });
+            if (id) {
+              Alert.alert('Full-Screen Test', 'Lock the device immediately. Popup should appear in ~2s.');
+            } else {
+              Alert.alert('Unavailable', 'Full-screen alarm not available (iOS or Expo Go).');
+            }
+          } catch (e) {
+            console.log('Force full-screen failed', e);
+            Alert.alert('Error', 'Failed to trigger full-screen test.');
+          }
+        }}
+      >
+        <Text style={styles.testButtonText}>🚀 Force Full-Screen Now</Text>
       </TouchableOpacity>
     </View>
   );
