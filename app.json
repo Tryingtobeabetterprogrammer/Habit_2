@@ -17,8 +17,33 @@
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
-      ]
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "POST_NOTIFICATIONS",
+        "USE_FULL_SCREEN_INTENT",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "POST_NOTIFICATIONS",
+        "USE_FULL_SCREEN_INTENT"
+      ],
+      "notification": {
+        "icon": "./assets/icon.png",
+        "color": "#6C63FF",
+        "sounds": [
+          "default",
+          "default"
+        ]
+      },
+      "package": "com.anonymous.Habit"
     },
     "web": {
       "favicon": "./assets/favicon.png"
