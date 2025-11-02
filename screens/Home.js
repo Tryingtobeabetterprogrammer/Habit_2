@@ -1,204 +1,213 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Dimensions } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
-import MapView, { Marker } from 'react-native-maps';
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, Animated, Easing } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function Home({ navigation }) {
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
-  const [mapRegion, setMapRegion] = useState({
-    latitude: 12.9716,  // Default to a central location (Bangalore)
-    longitude: 77.5946,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
-  const [showMap, setShowMap] = useState(false);
+export default function HomeScreen() {
+  const [tasks, setTasks] = useState([
+    { id: "1", title: "Read a book" },
+    { id: "2", title: "Meditate" },
+  ]);
 
-  const handleLocationPress = () => {
-    navigation.navigate('MapScreen');
+  const glowAnim = useRef(new Animated.Value(1)).current;
+
+  // 🔆 Glow animation for button
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1.15,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 1200,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [glowAnim]);
+
+  const handleLocation = () => {
+    alert("Fetching your location...");
   };
 
-  const tasks = [
-    { id: 1, title: 'Read a book', completed: false },
-    { id: 2, title: 'Exercise', completed: true },
-    { id: 3, title: 'Meditate', completed: false },
-  ];
-
-  const incompleteTasks = tasks.filter(task => !task.completed);
-
   return (
-    <View style={styles.container}>
-      {/* User Profile Section */}
-      <View style={styles.profileContainer}>
-        <View style={styles.avatarContainer}>
-          <Image
-            source={require('../assets/logo.png')}
-            style={styles.avatar}
-          />
-          <TouchableOpacity style={styles.editButton}>
-            <Ionicons name="camera" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.userName}>User Name</Text>
-        <Text style={styles.userEmail}>user@example.com</Text>
-      </View>
-
-      {/* Location Button */}
-      <View style={styles.aiChatContainer}>
-        <TouchableOpacity style={styles.aiChatButton} onPress={handleLocationPress}>
-          <MaterialIcons name="location-on" size={24} color="#6C63FF" />
-          <Text style={styles.aiChatText}>SHOW MY LOCATION</Text>
+    <LinearGradient
+      colors={["#E0C3FC", "#8EC5FC"]}
+      style={styles.container}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Habit Tracker</Text>
+        <TouchableOpacity>
+          <Ionicons name="settings-outline" size={26} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      {/* Map View */}
-      {showMap && (
-        <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            region={mapRegion}
-            showsUserLocation={true}
-            showsMyLocationButton={true}
-            followsUserLocation={true}
-          >
-            {location && (
-              <Marker
-                coordinate={{
-                  latitude: location.coords.latitude,
-                  longitude: location.coords.longitude,
-                }}
-                title="Your Location"
-                description="You are here"
-              />
-            )}
-          </MapView>
+      {/* Profile Card */}
+      <LinearGradient colors={["#705CFF", "#F883DD"]} style={styles.profileCard}>
+        <View style={styles.avatarContainer}>
+          <Image
+            source={{
+              uri: "https://cdn-icons-png.flaticon.com/512/4140/4140037.png",
+            }}
+            style={styles.avatar}
+          />
+          <TouchableOpacity style={styles.cameraIcon}>
+            <Ionicons name="camera" size={18} color="#fff" />
+          </TouchableOpacity>
         </View>
-      )}
 
-      {/* Tasks Panel */}
-      <TouchableOpacity 
-        style={styles.tasksPanel} 
-        onPress={() => navigation.navigate('TaskList')}
-      >
-        <Text style={styles.tasksTitle}>Tasks to Complete</Text>
-        {incompleteTasks.map(task => (
-          <View key={task.id} style={styles.taskItem}>
-            <Text style={styles.taskText}>{task.title}</Text>
-          </View>
-        ))}
-      </TouchableOpacity>
-    </View>
+        <Text style={styles.userName}>User Name</Text>
+        <Text style={styles.userEmail}>user@example.com</Text>
+
+        {/* Animated Glowing Button */}
+        <Animated.View
+          style={[
+            styles.glowWrapper,
+            {
+              transform: [{ scale: glowAnim }],
+            },
+          ]}
+        >
+          <TouchableOpacity style={styles.locationButton} onPress={handleLocation}>
+            <LinearGradient
+              colors={["#705CFF", "#F883DD"]}
+              style={styles.locationGradient}
+            >
+              <Text style={styles.locationButtonText}>SHOW MY LOCATION</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+      </LinearGradient>
+
+      {/* Tasks Section */}
+      <View style={styles.taskSection}>
+        <Text style={styles.taskHeader}>Today's Habits</Text>
+        <FlatList
+          data={tasks}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.taskItem}>
+              <Ionicons name="checkmark-circle-outline" size={22} color="#705CFF" />
+              <Text style={styles.taskText}>{item.title}</Text>
+            </View>
+          )}
+        />
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  mapContainer: {
-    height: 300,
-    margin: 20,
-    borderRadius: 15,
-    overflow: 'hidden',
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  profileContainer: {
-    backgroundColor: '#6C63FF',
-    padding: 20,
+    paddingHorizontal: 20,
     paddingTop: 50,
-    alignItems: 'center',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    paddingBottom: 30,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  headerText: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+  profileCard: {
+    borderRadius: 25,
+    alignItems: "center",
+    paddingVertical: 25,
+    paddingHorizontal: 20,
+    marginBottom: 25,
+    shadowColor: "#705CFF",
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
   },
   avatarContainer: {
-    position: 'relative',
-    marginBottom: 15,
+    position: "relative",
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     borderWidth: 3,
-    borderColor: 'white',
+    borderColor: "#fff",
   },
-  editButton: {
-    position: 'absolute',
+  cameraIcon: {
+    position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: '#6C63FF',
-    borderRadius: 20,
-    padding: 5,
+    backgroundColor: "#705CFF",
+    padding: 6,
+    borderRadius: 15,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: "#fff",
   },
   userName: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: 'white',
+    fontSize: 20,
+    color: "#fff",
+    fontWeight: "bold",
     marginTop: 10,
   },
   userEmail: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: 5,
+    color: "#f5e4ff",
+    fontSize: 14,
+    marginBottom: 20,
   },
-  aiChatContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 30,
-    marginTop: -20,
-    borderRadius: 15,
-    padding: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-    zIndex: 10,
+  glowWrapper: {
+    shadowColor: "#F883DD",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  aiChatButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
+  locationButton: {
+    borderRadius: 25,
+    overflow: "hidden",
   },
-  aiChatText: {
-    color: '#6C63FF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 10,
+  locationGradient: {
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  tasksPanel: {
-    backgroundColor: 'white',
-    margin: 20,
-    borderRadius: 15,
+  locationButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  taskSection: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
     shadowRadius: 5,
-    elevation: 3,
+    elevation: 5,
   },
-  tasksTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+  taskHeader: {
+    color: "#333",
+    fontSize: 18,
+    fontWeight: "bold",
     marginBottom: 15,
   },
   taskItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
   taskText: {
+    color: "#555",
     fontSize: 16,
-    color: '#333',
+    marginLeft: 10,
+    fontWeight: "500",
   },
 });

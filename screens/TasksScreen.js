@@ -1,320 +1,137 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Modal, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function TasksScreen() {
-  const [tasks, setTasks] = useState([]);
-  const [newTask, setNewTask] = useState({ 
-    title: '', 
-    description: '',
-    time: '12:00',
-    reason: '',
-    how: ''
-  });
-  const [isAddModalVisible, setAddModalVisible] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
-  const navigation = useNavigation();
+export default function MyTasksScreen() {
+  const [tasks, setTasks] = useState([
+    { id: "1", title: "Read a book", description: "30 minutes before bed", color: "#FFF6E5" },
+    { id: "2", title: "Exercise", description: "Go for a 30-min run", color: "#E5F1FF" },
+    { id: "3", title: "Meditate", description: "10 minutes of calm", color: "#FFE5EC" },
+  ]);
 
-  const addTask = () => {
-    if (newTask.title.trim()) {
-      const task = {
-        id: Date.now().toString(),
-        ...newTask,
-        completed: false
-      };
-      setTasks([...tasks, task]);
-      setNewTask({ 
-        title: '', 
-        description: '',
-        time: '12:00',
-        reason: '',
-        how: ''
-      });
-      setAddModalVisible(false);
-    }
-  };
+  const deleteTask = (id) => setTasks(tasks.filter((task) => task.id !== id));
 
-  const deleteTask = (taskId) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
-  };
-
-  const toggleTask = (taskId) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, completed: !task.completed } : task
-    ));
-  };
+  const renderItem = ({ item }) => (
+    <View style={[styles.taskCard, { backgroundColor: item.color }]}>
+      <View>
+        <Text style={styles.taskTitle}>{item.title}</Text>
+        <Text style={styles.taskDesc}>{item.description}</Text>
+      </View>
+      <TouchableOpacity onPress={() => deleteTask(item.id)}>
+        <Ionicons name="trash-outline" size={22} color="#ff5c5c" />
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Task List */}
+      <LinearGradient
+        colors={["#9D7BFF", "#FF89B5"]}
+        style={styles.header}
+      >
+        <Text style={styles.headerText}>My Tasks</Text>
+      </LinearGradient>
+
       <FlatList
         data={tasks}
+        renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.taskItem}
-            onPress={() => navigation.navigate('TaskDetail', { task: item })}
-          >
-            <View style={styles.taskContent}>
-              <Text style={[styles.taskTitle, item.completed && styles.completedTask]}>
-                {item.title}
-              </Text>
-              <Text style={styles.taskTime}>⏰ {item.time}</Text>
-            </View>
-            <TouchableOpacity 
-              style={styles.deleteButton}
-              onPress={(e) => {
-                e.stopPropagation(); // Prevent navigation when deleting
-                deleteTask(item.id);
-              }}
-            >
-              <Text style={styles.deleteText}>✕</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.taskList}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>No tasks yet</Text>
-            <Text style={styles.emptyStateSubtext}>Tap + to add a new task</Text>
-          </View>
-        }
+        contentContainerStyle={styles.list}
       />
 
-      {/* Add Task Button */}
-      <TouchableOpacity 
-        style={styles.addButton}
-        onPress={() => setAddModalVisible(true)}
-      >
-        <Text style={styles.addButtonText}>+</Text>
+      <TouchableOpacity style={styles.addButton}>
+        <LinearGradient colors={["#9D7BFF", "#FF89B5"]} style={styles.gradientButton}>
+          <Ionicons name="add" size={28} color="#fff" />
+        </LinearGradient>
       </TouchableOpacity>
 
-      {/* Add Task Modal */}
-      <Modal
-        visible={isAddModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setAddModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>New Task</Text>
-            
-            <Text style={styles.inputLabel}>What's the task?</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Task name"
-              value={newTask.title}
-              onChangeText={(text) => setNewTask({...newTask, title: text})}
-            />
-            
-            <Text style={styles.inputLabel}>Description</Text>
-            <TextInput
-              style={[styles.input, styles.multilineInput]}
-              placeholder="Add details about the task"
-              value={newTask.description}
-              onChangeText={(text) => setNewTask({...newTask, description: text})}
-              multiline
-            />
-            
-            <Text style={styles.inputLabel}>Time</Text>
-            <TouchableOpacity 
-              style={styles.timeButton}
-              onPress={() => {
-                // Time picker implementation would go here
-                // For now, just using a simple text input
-              }}
-            >
-              <Text>⏰ {newTask.time}</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.inputLabel}>Why is this important?</Text>
-            <TextInput
-              style={[styles.input, styles.multilineInput]}
-              placeholder="Why do you want to complete this task?"
-              value={newTask.reason}
-              onChangeText={(text) => setNewTask({...newTask, reason: text})}
-              multiline
-            />
-            
-            <Text style={styles.inputLabel}>How will you complete it?</Text>
-            <TextInput
-              style={[styles.input, styles.multilineInput]}
-              placeholder="Break it down into steps if needed"
-              value={newTask.how}
-              onChangeText={(text) => setNewTask({...newTask, how: text})}
-              multiline
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setAddModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.saveButton]}
-                onPress={addTask}
-              >
-                <Text style={styles.saveButtonText}>Save Task</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <View style={styles.bottomNav}>
+        <TouchableOpacity>
+          <Ionicons name="home-outline" size={24} color="#b1b1b1" />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Ionicons name="list" size={26} color="#9D7BFF" />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Ionicons name="chatbubble-outline" size={24} color="#b1b1b1" />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Ionicons name="location-outline" size={24} color="#b1b1b1" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles=StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#FAFAFA",
   },
-  taskList: {
-    padding: 16,
+  header: {
+    height: 120,
+    justifyContent: "flex-end",
+    paddingHorizontal: 25,
+    paddingBottom: 25,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    elevation: 5,
   },
-  taskItem: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  headerText: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "700",
   },
-  taskContent: {
-    flex: 1,
-  },
-  taskTitle: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  taskTime: {
-    fontSize: 14,
-    color: '#666',
-  },
-  completedTask: {
-    textDecorationLine: 'line-through',
-    color: '#999',
-  },
-  deleteButton: {
-    padding: 8,
-    marginLeft: 8,
-  },
-  deleteText: {
-    fontSize: 20,
-    color: '#ff6b6b',
-  },
-  addButton: {
-    position: 'absolute',
-    right: 24,
-    bottom: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-  },
-  addButtonText: {
-    color: 'white',
-    fontSize: 24,
-    lineHeight: 28,
-    marginTop: -2,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 100,
-  },
-  emptyStateText: {
-    fontSize: 18,
-    color: '#666',
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    color: '#999',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
+  list: {
     padding: 20,
   },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    maxHeight: '80%',
+  taskCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 20,
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 20,
-    textAlign: 'center',
+  taskTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
   },
-  inputLabel: {
+  taskDesc: {
     fontSize: 14,
-    color: '#333',
-    marginBottom: 8,
-    marginTop: 12,
-    fontWeight: '500',
+    color: "#666",
+    marginTop: 4,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
+  addButton: {
+    position: "absolute",
+    bottom: 80,
+    right: 30,
+    shadowColor: "#9D7BFF",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  multilineInput: {
-    minHeight: 80,
-    textAlignVertical: 'top',
+  gradientButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  timeButton: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    alignItems: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 24,
-  },
-  modalButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginLeft: 12,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f0f0f0',
-  },
-  cancelButtonText: {
-    color: '#333',
-  },
-  saveButton: {
-    backgroundColor: '#007AFF',
-  },
-  saveButtonText: {
-    color: 'white',
-    fontWeight: '500',
+  bottomNav: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    height: 70,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    elevation: 10,
   },
 });

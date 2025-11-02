@@ -1,105 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from "react";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 
-// Import AddTask screen
-import AddTask from './AddTask';
-
-export default function TaskList({ navigation }) {
+export default function MyTasksScreen() {
   const [tasks, setTasks] = useState([
-    { id: '1', title: 'Read a book', description: 'Read 30 minutes before bed', completed: false, createdAt: new Date().toISOString() },
-    { id: '2', title: 'Exercise', description: 'Go for a 30-minute run', completed: true, createdAt: new Date().toISOString() },
-    { id: '3', title: 'Meditate', description: '10 minutes of morning meditation', completed: false, createdAt: new Date().toISOString() },
+    { id: "1", title: "Read a book", description: "30 minutes before bed", color: "#FFF6E5" },
+    { id: "2", title: "Exercise", description: "Go for a 30-min run", color: "#E5F1FF" },
+    { id: "3", title: "Meditate", description: "10 minutes of calm", color: "#FFE5EC" },
   ]);
 
-  const handleAddTask = (newTask) => {
-    setTasks(prevTasks => [newTask, ...prevTasks]);
-  };
+  const deleteTask = (id) => setTasks(tasks.filter((task) => task.id !== id));
 
-  const toggleTaskCompletion = (taskId) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  const deleteTask = (taskId) => {
-    Alert.alert(
-      'Delete Task',
-      'Are you sure you want to delete this task?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-          },
-        },
-      ]
-    );
-  };
-
-  const renderTaskItem = ({ item }) => (
-    <View style={styles.taskItem}>
-      <TouchableOpacity 
-        style={styles.checkbox}
-        onPress={() => toggleTaskCompletion(item.id)}
-      >
-        {item.completed ? (
-          <Ionicons name="checkbox-outline" size={24} color="#6C63FF" />
-        ) : (
-          <Ionicons name="square-outline" size={24} color="#ccc" />
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={styles.taskContent}
-        onPress={() => navigation.navigate('TaskDetail', { task: item })}
-      >
-        <Text 
-          style={[
-            styles.taskText, 
-            item.completed && styles.completedTask
-          ]}
-        >
-          {item.title}
-        </Text>
-        {item.description && (
-          <Text style={styles.taskDescription} numberOfLines={1}>
-            {item.description}
-          </Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity 
-        style={styles.deleteButton}
-        onPress={() => deleteTask(item.id)}
-      >
-        <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
+  const renderItem = ({ item }) => (
+    <View style={[styles.taskCard, { backgroundColor: item.color }]}>
+      <View>
+        <Text style={styles.taskTitle}>{item.title}</Text>
+        <Text style={styles.taskDesc}>{item.description}</Text>
+      </View>
+      <TouchableOpacity onPress={() => deleteTask(item.id)}>
+        <Ionicons name="trash-outline" size={22} color="#ff5c5c" />
       </TouchableOpacity>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Tasks</Text>
-      
+      <LinearGradient
+        colors={["#9D7BFF", "#FF89B5"]}
+        style={styles.header}
+      >
+        <Text style={styles.headerText}>My Tasks</Text>
+      </LinearGradient>
+
       <FlatList
         data={tasks}
-        renderItem={renderTaskItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.taskList}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
       />
-      
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => navigation.navigate('AddTask', { onAddTask: handleAddTask })}
-      >
-        <Ionicons name="add" size={28} color="#fff" />
+
+      <TouchableOpacity style={styles.addButton}>
+        <LinearGradient colors={["#9D7BFF", "#FF89B5"]} style={styles.gradientButton}>
+          <Ionicons name="add" size={28} color="#fff" />
+        </LinearGradient>
       </TouchableOpacity>
+
+      <View style={styles.bottomNav}>
+        <TouchableOpacity>
+          <Ionicons name="home-outline" size={24} color="#b1b1b1" />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Ionicons name="list" size={26} color="#9D7BFF" />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Ionicons name="chatbubble-outline" size={24} color="#b1b1b1" />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Ionicons name="location-outline" size={24} color="#b1b1b1" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -107,68 +67,71 @@ export default function TaskList({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#FAFAFA",
+  },
+  header: {
+    height: 120,
+    justifyContent: "flex-end",
+    paddingHorizontal: 25,
+    paddingBottom: 25,
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    elevation: 5,
+  },
+  headerText: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "700",
+  },
+  list: {
     padding: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
+  taskCard: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 20,
+    marginBottom: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  taskList: {
-    paddingBottom: 20,
+  taskTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
   },
-  taskItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  checkbox: {
-    marginRight: 15,
-  },
-  taskContent: {
-    flex: 1,
-  },
-  taskText: {
-    fontSize: 16,
-    color: '#333',
-    marginBottom: 4,
-  },
-  taskDescription: {
+  taskDesc: {
     fontSize: 14,
-    color: '#888',
-  },
-  completedTask: {
-    textDecorationLine: 'line-through',
-    color: '#aaa',
-  },
-  deleteButton: {
-    padding: 8,
-    marginLeft: 10,
+    color: "#666",
+    marginTop: 4,
   },
   addButton: {
-    position: 'absolute',
-    right: 25,
-    bottom: 25,
+    position: "absolute",
+    bottom: 80,
+    right: 30,
+    shadowColor: "#9D7BFF",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  gradientButton: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#6C63FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#6C63FF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bottomNav: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    height: 70,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    elevation: 10,
   },
 });
